@@ -1,0 +1,67 @@
+@model IEnumerable<EsgPlatform.Models.EsgDocumentUpload>
+@{
+    ViewData["Title"] = "文件上傳記錄";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center">
+        <div class="rounded-circle p-3 me-3" style="background:#e8f5e9;">
+            <i class="bi bi-clock-history fs-3 text-success"></i>
+        </div>
+        <div>
+            <h4 class="mb-0 fw-bold">文件上傳記錄</h4>
+            <p class="text-muted mb-0 small">
+                @if (Model.Any())
+                {
+                    <text>排程：@Model.First().DocumentName</text>
+                }
+            </p>
+        </div>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>返回看板
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 opacity-25"></i>
+                <p class="mt-3">此排程尚無上傳記錄</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">原始檔名</th>
+                            <th>檔案大小</th>
+                            <th>上傳者</th>
+                            <th>上傳時間</th>
+                            <th>備注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in Model)
+                        {
+                            <tr>
+                                <td class="ps-3">
+                                    <i class="bi bi-file-earmark me-1 text-muted"></i>
+                                    @u.OriginalFileName
+                                </td>
+                                <td class="small">@u.FileSizeDisplay</td>
+                                <td class="small">@u.Username</td>
+                                <td class="small text-muted">@u.UploadedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                                <td class="small text-muted">@(u.Remark ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

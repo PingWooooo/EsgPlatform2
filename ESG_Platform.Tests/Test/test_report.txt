@@ -1,0 +1,65 @@
+● 全部 88 個測試皆通過！ 以下是完整報告。
+
+  ---
+  測試完成報告
+
+  最終測試通過率
+
+  ┌────────────────────────┬────────┬───────┬──────┐
+  │          類別          │ 測試數 │ 通過  │ 失敗 │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ CalculationEngineTests │ 7      │ ✅ 7  │ 0    │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ MonitoringServiceTests │ 9      │ ✅ 9  │ 0    │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ RepositoryMappingTests │ 18     │ ✅ 18 │ 0    │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ AuthorizationTests     │ 11     │ ✅ 11 │ 0    │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ ExcelServiceTests      │ 11     │ ✅ 11 │ 0    │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ UnitTest1（預設）      │ 1      │ ✅ 1  │ 0    │
+  ├────────────────────────┼────────┼───────┼──────┤
+  │ 合計                   │ 88     │ 88    │ 0    │
+  └────────────────────────┴────────┴───────┴──────┘
+
+  通過率：100%（88 / 88） ✅
+
+  ---
+  發現的 Bug 與修復說明
+
+  Bug 1 — UploadService.cs：MiniExcel API 參數名稱錯誤（編譯失敗）
+
+  - 問題：MiniExcel.Query<T> 的 Typed 多載並不接受 useHeaderRow 具名參數，但原始碼卻傳入 useHeaderRow: true，導致編譯直接失敗。
+  - 根因：Typed 泛型查詢 Query<T> 會自動以首列作為欄位標題，useHeaderRow 參數僅存在於非泛型版本 Query()。
+  - 修復：移除 useHeaderRow: true 具名參數。
+
+  // 修復前（無法編譯）
+  var rows = MiniExcel.Query<ExcelRowModel>(tempPath, useHeaderRow: true);
+
+  // 修復後
+  var rows = MiniExcel.Query<ExcelRowModel>(tempPath);
+
+  ---
+  Bug 2 — CalculationEngine.cs：未對負值活動量進行防護（邏輯缺陷）
+
+  - 問題：CalculateAndSaveAsync 直接計算 upload.Value * factor * gwp / 1000，若傳入負值（例如 -500），會寫入一筆 -1.1 公噸 的錯誤碳排放資料到資料庫，且完全無警告。
+  - 根因：缺少輸入值的前置驗證邏輯。排放量在物理意義上不可能為負值。
+  - 測試結果：CalculateAndSave_NegativeValue_ThrowsArgumentException 測試 失敗（原本預期丟出例外但無動作）。
+  - 修復：在方法開頭加入 ArgumentException 防護。
+
+  // 修復後加入的防護
+  if (upload.Value < 0)
+      throw new ArgumentException(
+          $"活動量不得為負值（Value={upload.Value}），請確認輸入資料",
+          nameof(upload));
+
+  ---
+  Bug 3 — 測試設計缺陷（TempData 未初始化導致 Controller 行為異常）
+
+  - 問題：在 ReportScheduleController_Create_Post_AdminUser_ValidModel_RedirectsToIndex 測試中，直接 new 出控制器物件時，TempData 屬性為 null。當 Create 成功後執行
+  TempData["Success"] = "..." 時，會丟出 NullReferenceException，並被控制器內部的 catch 區塊捕獲，轉而回傳 ViewResult（失敗畫面），而非預期的 RedirectToActionResult。
+  - 根因：MVC 控制器的 TempData 不會在 ControllerContext 初始化時自動建立，需要額外手動注入 ITempDataProvider。
+  - 修復：新增 CreateControllerWithTempData<T> 輔助方法，使用 Moq 模擬 ITempDataProvider 並初始化 TempDataDictionary，確保 TempData 可正常存取。
+
+✻ Crunched for 12m 19s

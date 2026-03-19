@@ -1,0 +1,95 @@
+@model IEnumerable<EsgPlatform.Models.EsgDocumentSchedule>
+@{
+    ViewData["Title"] = "ESG 文件排程維護";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center">
+        <div class="rounded-circle p-3 me-3" style="background:#e8f5e9;">
+            <i class="bi bi-calendar-event-fill fs-3 text-success"></i>
+        </div>
+        <div>
+            <h4 class="mb-0 fw-bold">ESG 文件排程維護</h4>
+            <p class="text-muted mb-0 small">管理員可新增、編輯、停用文件排程</p>
+        </div>
+    </div>
+    <a asp-action="CreateSchedule" class="btn btn-success">
+        <i class="bi bi-plus-circle me-1"></i>新增排程
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-calendar-plus fs-1 opacity-25"></i>
+                <p class="mt-3">尚無排程，請點擊「新增排程」開始設定</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3" style="width:70px;">燈號</th>
+                            <th>文件名稱</th>
+                            <th>頻率</th>
+                            <th>負責窗口</th>
+                            <th>預警天數</th>
+                            <th>下次截止日</th>
+                            <th>最後上傳</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.OrderBy(x => x.NextDueDate))
+                        {
+                            <tr>
+                                <td class="ps-3 text-center">
+                                    <span class="status-dot status-@s.TrafficLight.ToLower() d-inline-block"
+                                          style="width:16px;height:16px;" title="@s.TrafficLightDisplay"></span>
+                                </td>
+                                <td class="fw-semibold">@s.DocumentName</td>
+                                <td>
+                                    <span class="badge @(s.Frequency == "Monthly" ? "bg-info text-dark" : "bg-primary")">
+                                        @s.FrequencyDisplay
+                                    </span>
+                                </td>
+                                <td class="small">@s.ResponsiblePerson</td>
+                                <td class="small text-muted">@s.WarningDays 天</td>
+                                <td class="small">@s.NextDueDate.ToString("yyyy/MM/dd")</td>
+                                <td class="small text-muted">
+                                    @(s.LastUploadedAt.HasValue
+                                        ? s.LastUploadedAt.Value.ToString("yyyy/MM/dd")
+                                        : "—")
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="EditSchedule" asp-route-id="@s.Id"
+                                           class="btn btn-outline-primary" title="編輯">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Upload" asp-route-scheduleId="@s.Id"
+                                           class="btn btn-outline-success" title="上傳文件">
+                                            <i class="bi bi-cloud-upload"></i>
+                                        </a>
+                                        <form asp-action="DeleteSchedule" method="post" class="d-inline"
+                                              onsubmit="return confirm('確定停用排程「@s.DocumentName」？')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@s.Id" />
+                                            <button type="submit" class="btn btn-outline-danger" title="停用">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

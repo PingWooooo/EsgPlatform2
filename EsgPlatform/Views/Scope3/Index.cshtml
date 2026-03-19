@@ -1,0 +1,366 @@
+@model EsgPlatform.ViewModels.Scope3ViewModel
+@{
+    ViewData["Title"] = "範疇三溫室氣體管理";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <div class="rounded-circle p-3 me-3" style="background:#e8f5e9;">
+        <i class="bi bi-diagram-3-fill fs-3 text-success"></i>
+    </div>
+    <div>
+        <h4 class="mb-0 fw-bold">範疇三溫室氣體管理</h4>
+        <p class="text-muted mb-0 small">依 GHG Protocol 範疇三 15 項類別進行盤查計算</p>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- 左側：計算表單 -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white pt-3 pb-3">
+                <h6 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-calculator me-2"></i>範疇三排放計算
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Calculate" method="post" id="scope3Form">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Step 1：選擇類別 -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <span class="badge bg-success me-1">1</span> 選擇排放類別
+                        </label>
+                        <select class="form-select" id="categorySelect" name="CategoryId" required>
+                            <option value="">── 請選擇範疇三類別 ──</option>
+                            @foreach (var cat in Model.Categories)
+                            {
+                                <option value="@cat.Id">
+                                    @cat.CategoryNumber. @cat.Name
+                                </option>
+                            }
+                        </select>
+                        <div class="form-text text-muted" id="categoryDesc"></div>
+                    </div>
+
+                    <!-- Step 2：選擇計算方法（連動） -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <span class="badge bg-success me-1">2</span> 選擇計算方法
+                        </label>
+                        <select class="form-select" id="methodSelect" name="MethodId" required disabled>
+                            <option value="">── 請先選擇類別 ──</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 3：動態欄位（由 RequiredFieldsJson 渲染） -->
+                    <div id="dynamicFields" class="d-none">
+                        <div class="border-top pt-3 mb-3">
+                            <p class="text-muted small fw-semibold mb-2">
+                                <span class="badge bg-success me-1">3</span> 填寫計算數據
+                            </p>
+                            <div id="dynamicFieldsContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4：期間與備注 -->
+                    <div id="periodSection" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                <span class="badge bg-success me-1">4</span> 盤查期間
+                            </label>
+                            <input type="text" class="form-control" name="Period"
+                                   placeholder="例：2024-Q1、2024-01、2024" required />
+                            <div class="form-text">例：2024-Q1（季）、2024-01（月）、2024（年）</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">備注（選填）</label>
+                            <textarea class="form-control" name="Remark" rows="2"
+                                      placeholder="可填寫資料來源、供應商名稱等補充說明"></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-calculator me-2"></i>執行計算並儲存
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側：各類別佔比圖表 + 歷史記錄 -->
+    <div class="col-lg-7">
+
+        <!-- 堆疊橫向條形圖：各類別 CO2e 佔比（依規範禁止圓餅圖） -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-3">
+                <h6 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-bar-chart-horizontal-fill me-2 text-success"></i>
+                    範疇三各類別 CO₂e 佔比
+                    <span class="badge bg-secondary ms-2 small">堆疊橫向條形圖</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TotalCO2e == 0)
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-bar-chart-line fs-1 opacity-25"></i>
+                        <p class="mt-2">尚無計算結果，請先進行盤查計算</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="small text-muted mb-2">
+                        範疇三總計：<strong class="text-success">@Model.TotalCO2e.ToString("N4")</strong> 公噸 CO₂e
+                    </div>
+                    <canvas id="scope3Chart" style="max-height:320px;"></canvas>
+                }
+            </div>
+        </div>
+
+        <!-- 最近計算結果 -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pt-3">
+                <h6 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-clock-history me-2 text-success"></i>最近計算記錄
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.RecentResults.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-2 opacity-25"></i>
+                        <p class="mt-2 small">尚無計算記錄</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">類別</th>
+                                    <th>方法</th>
+                                    <th>期間</th>
+                                    <th>CO₂e（公噸）</th>
+                                    <th>時間</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in Model.RecentResults)
+                                {
+                                    <tr>
+                                        <td class="ps-3 small">@r.CategoryName</td>
+                                        <td class="small">@r.MethodName</td>
+                                        <td class="small">@r.Period</td>
+                                        <td class="fw-semibold text-success small">@r.TotalCO2e.ToString("N4")</td>
+                                        <td class="small text-muted">@r.CalculatedAt.ToString("MM/dd HH:mm")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// ── 類別清單描述（從 Razor 序列化到 JS） ──
+const categoryDescriptions = {
+    @foreach (var cat in Model.Categories)
+    {
+        @:@cat.Id: "@cat.Description",
+    }
+};
+
+// ── 類別選擇：載入對應計算方法 ──
+document.getElementById('categorySelect').addEventListener('change', async function () {
+    const categoryId = this.value;
+    const methodSelect = document.getElementById('methodSelect');
+    const dynamicFields = document.getElementById('dynamicFields');
+    const periodSection = document.getElementById('periodSection');
+    const descEl = document.getElementById('categoryDesc');
+
+    // 清除動態欄位
+    methodSelect.innerHTML = '<option value="">── 載入中... ──</option>';
+    methodSelect.disabled = true;
+    dynamicFields.classList.add('d-none');
+    periodSection.classList.add('d-none');
+    document.getElementById('dynamicFieldsContainer').innerHTML = '';
+
+    if (!categoryId) {
+        methodSelect.innerHTML = '<option value="">── 請先選擇類別 ──</option>';
+        descEl.textContent = '';
+        return;
+    }
+
+    descEl.textContent = categoryDescriptions[categoryId] || '';
+
+    try {
+        const resp = await fetch(`/Scope3/GetMethods?categoryId=${categoryId}`);
+        const methods = await resp.json();
+
+        methodSelect.innerHTML = '<option value="">── 請選擇計算方法 ──</option>';
+        methods.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = m.methodName;
+            methodSelect.appendChild(opt);
+        });
+        methodSelect.disabled = false;
+    } catch (err) {
+        methodSelect.innerHTML = '<option value="">── 載入失敗，請重試 ──</option>';
+        console.error('載入計算方法失敗', err);
+    }
+});
+
+// ── 方法選擇：解析 RequiredFieldsJson 動態渲染欄位 ──
+document.getElementById('methodSelect').addEventListener('change', async function () {
+    const methodId = this.value;
+    const dynamicFields = document.getElementById('dynamicFields');
+    const periodSection = document.getElementById('periodSection');
+    const container = document.getElementById('dynamicFieldsContainer');
+
+    container.innerHTML = '';
+    dynamicFields.classList.add('d-none');
+    periodSection.classList.add('d-none');
+
+    if (!methodId) return;
+
+    try {
+        const resp = await fetch(`/Scope3/GetRequiredFields?methodId=${methodId}`);
+        const fields = await resp.json();
+
+        fields.forEach(field => {
+            const div = document.createElement('div');
+            div.className = 'mb-3';
+
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.innerHTML = field.label + (field.required ? ' <span class="text-danger">*</span>' : '');
+            if (field.unit) label.innerHTML += ` <small class="text-muted">(${field.unit})</small>`;
+            div.appendChild(label);
+
+            let input;
+            if (field.type === 'select' && Array.isArray(field.options)) {
+                input = document.createElement('select');
+                input.className = 'form-select';
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = '── 請選擇 ──';
+                input.appendChild(defaultOpt);
+                field.options.forEach(opt => {
+                    const o = document.createElement('option');
+                    o.value = opt;
+                    o.textContent = opt;
+                    input.appendChild(o);
+                });
+            } else {
+                input = document.createElement('input');
+                input.type = field.type === 'number' ? 'number' : 'text';
+                input.className = 'form-control';
+                input.placeholder = field.label;
+                if (field.type === 'number') {
+                    input.step = 'any';
+                    input.min = '0';
+                }
+            }
+
+            // 欄位名稱格式：Fields[fieldName]，對應 Dictionary<string,string> 綁定
+            input.name = `Fields[${field.fieldName}]`;
+            if (field.required) input.required = true;
+
+            div.appendChild(input);
+            container.appendChild(div);
+        });
+
+        dynamicFields.classList.remove('d-none');
+        periodSection.classList.remove('d-none');
+    } catch (err) {
+        console.error('載入欄位定義失敗', err);
+    }
+});
+
+// ── 範疇三各類別堆疊橫向條形圖 ──
+@if (Model.TotalCO2e > 0)
+{
+    <text>
+    const summaryData = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(
+            Model.CategorySummary.Select(kvp => new {
+                categoryId = kvp.Key,
+                co2e       = kvp.Value
+            }).ToList()
+        )
+    );
+
+    const allCategories = @Html.Raw(
+        System.Text.Json.JsonSerializer.Serialize(
+            Model.Categories.Select(c => new { id = c.Id, name = c.CategoryNumber + ". " + c.Name }).ToList()
+        )
+    );
+
+    // 只顯示有資料的類別
+    const activeCategories = allCategories.filter(c =>
+        summaryData.some(s => s.categoryId === c.id && s.co2e > 0)
+    );
+
+    const totalCO2e = summaryData.reduce((sum, s) => sum + s.co2e, 0);
+
+    // 為各類別分配色彩（10 種顏色循環）
+    const colors = [
+        '#2e7d32','#388e3c','#43a047','#4caf50','#66bb6a',
+        '#81c784','#a5d6a7','#c8e6c9','#1b5e20','#558b2f'
+    ];
+
+    const labels   = activeCategories.map(c => c.name);
+    const datasets = activeCategories.map((cat, idx) => {
+        const row  = summaryData.find(s => s.categoryId === cat.id);
+        const val  = row ? row.co2e : 0;
+        const pct  = totalCO2e > 0 ? (val / totalCO2e * 100).toFixed(1) : 0;
+        return {
+            label: cat.name,
+            data: [val],                          // 每個 dataset 一個數值（堆疊在同一橫條）
+            backgroundColor: colors[idx % colors.length],
+            barPercentage: 0.5,
+        };
+    });
+
+    const ctx = document.getElementById('scope3Chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: { labels: ['範疇三各類別佔比'], datasets },
+        options: {
+            indexAxis: 'y',        // 橫向條形圖
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true,
+                    title: { display: true, text: '公噸 CO₂e' }
+                },
+                y: { stacked: true }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const pct = totalCO2e > 0
+                                ? (ctx.raw / totalCO2e * 100).toFixed(1)
+                                : 0;
+                            return ` ${ctx.dataset.label}: ${ctx.raw.toFixed(4)} 公噸 (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    </text>
+}
+</script>
+}

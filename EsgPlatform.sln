@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EsgPlatform", "EsgPlatform\EsgPlatform.csproj", "{0177D11E-5108-4D47-8F58-95416C8D33FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESG_Platform.Tests", "ESG_Platform.Tests\ESG_Platform.Tests.csproj", "{676A1045-064F-454E-A07A-5690FC8F2DE6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0177D11E-5108-4D47-8F58-95416C8D33FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0177D11E-5108-4D47-8F58-95416C8D33FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0177D11E-5108-4D47-8F58-95416C8D33FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0177D11E-5108-4D47-8F58-95416C8D33FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{676A1045-064F-454E-A07A-5690FC8F2DE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{676A1045-064F-454E-A07A-5690FC8F2DE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{676A1045-064F-454E-A07A-5690FC8F2DE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{676A1045-064F-454E-A07A-5690FC8F2DE6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

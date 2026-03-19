@@ -1,0 +1,57 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "G:\\claude-home-lab\\my-esg-project\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0177D11E-5108-4D47-8F58-95416C8D33FC}|EsgPlatform\\EsgPlatform.csproj|g:\\claude-home-lab\\my-esg-project\\esgplatform\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{0177D11E-5108-4D47-8F58-95416C8D33FC}|EsgPlatform\\EsgPlatform.csproj|solutionrelative:esgplatform\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0177D11E-5108-4D47-8F58-95416C8D33FC}|EsgPlatform\\EsgPlatform.csproj|g:\\claude-home-lab\\my-esg-project\\esgplatform\\sql\\initialschema.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{0177D11E-5108-4D47-8F58-95416C8D33FC}|EsgPlatform\\EsgPlatform.csproj|solutionrelative:esgplatform\\sql\\initialschema.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0177D11E-5108-4D47-8F58-95416C8D33FC}|EsgPlatform\\EsgPlatform.csproj|g:\\claude-home-lab\\my-esg-project\\esgplatform\\sql\\initialschema.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
+      "RelativeMoniker": "D:0:0:{0177D11E-5108-4D47-8F58-95416C8D33FC}|EsgPlatform\\EsgPlatform.csproj|solutionrelative:esgplatform\\sql\\initialschema.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "InitialSchema.sql ",
+              "DocumentMoniker": "G:\\claude-home-lab\\my-esg-project\\EsgPlatform\\SQL\\InitialSchema.sql",
+              "RelativeDocumentMoniker": "EsgPlatform\\SQL\\InitialSchema.sql",
+              "ToolTip": "G:\\claude-home-lab\\my-esg-project\\EsgPlatform\\SQL\\InitialSchema.sql",
+              "RelativeToolTip": "EsgPlatform\\SQL\\InitialSchema.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2026-03-19T13:55:39.558Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "G:\\claude-home-lab\\my-esg-project\\EsgPlatform\\appsettings.json",
+              "RelativeDocumentMoniker": "EsgPlatform\\appsettings.json",
+              "ToolTip": "G:\\claude-home-lab\\my-esg-project\\EsgPlatform\\appsettings.json",
+              "RelativeToolTip": "EsgPlatform\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-03-15T04:09:46.884Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

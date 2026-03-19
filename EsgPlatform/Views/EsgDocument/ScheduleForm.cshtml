@@ -1,0 +1,87 @@
+@model EsgPlatform.ViewModels.EsgDocumentScheduleFormModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "新增文件排程" : "編輯文件排程";
+    var isEdit = Model.Id != 0;
+    var formAction = isEdit ? "EditSchedule" : "CreateSchedule";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="d-flex align-items-center mb-4">
+            <div class="rounded-circle p-3 me-3" style="background:#e8f5e9;">
+                <i class="bi bi-calendar-event-fill fs-3 text-success"></i>
+            </div>
+            <div>
+                <h4 class="mb-0 fw-bold">@ViewData["Title"]</h4>
+                <p class="text-muted mb-0 small">設定 ESG 文件的上傳頻率與負責窗口</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="@formAction" method="post">
+                    @Html.AntiForgeryToken()
+                    @if (isEdit)
+                    {
+                        <input type="hidden" asp-for="Id" />
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="DocumentName" class="form-label fw-semibold">文件名稱</label>
+                        <input asp-for="DocumentName" class="form-control"
+                               placeholder="例：月度碳排放盤查報告" />
+                        <span asp-validation-for="DocumentName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Frequency" class="form-label fw-semibold">上傳頻率</label>
+                        <select asp-for="Frequency" class="form-select">
+                            <option value="Monthly">月報（Monthly）</option>
+                            <option value="Yearly">年報（Yearly）</option>
+                        </select>
+                        <span asp-validation-for="Frequency" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ResponsiblePerson" class="form-label fw-semibold">負責窗口</label>
+                        <input asp-for="ResponsiblePerson" class="form-control"
+                               placeholder="例：環境管理部－王小明" />
+                        <span asp-validation-for="ResponsiblePerson" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="WarningDays" class="form-label fw-semibold">
+                            預警天數 <small class="text-muted">（截止日前幾天顯示黃燈）</small>
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="WarningDays" class="form-control" type="number" min="1" max="365" />
+                            <span class="input-group-text">天</span>
+                        </div>
+                        <div class="form-text">建議：月報 7 天、年報 90 天</div>
+                        <span asp-validation-for="WarningDays" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="NextDueDate" class="form-label fw-semibold">下次截止日</label>
+                        <input asp-for="NextDueDate" class="form-control" type="date"
+                               value="@Model.NextDueDate.ToString("yyyy-MM-dd")" />
+                        <div class="form-text">文件上傳後系統會依頻率自動推算下次截止日</div>
+                        <span asp-validation-for="NextDueDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1">
+                            <i class="bi bi-check-circle me-1"></i>
+                            @(isEdit ? "更新排程" : "新增排程")
+                        </button>
+                        <a asp-action="Schedules" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

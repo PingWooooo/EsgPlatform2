@@ -1,0 +1,46 @@
+@model List<EsgPlatform.Models.NavItem>
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction     = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    @foreach (var item in Model)
+    {
+        @if (item.Children.Count == 0)
+        {
+            @* 一級直連選單（如儀表板） *@
+            var isActive = item.Controller == currentController;
+            <li class="nav-item">
+                <a class="nav-link @(isActive ? "active" : "")"
+                   asp-controller="@item.Controller" asp-action="@item.Action">
+                    <i class="@item.Icon me-1"></i>@item.Title
+                </a>
+            </li>
+        }
+        else
+        {
+            @* 有子選單的下拉群組 *@
+            var isGroupActive = item.Children.Any(c => c.Controller == currentController);
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle @(isGroupActive ? "active" : "")"
+                   href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="@item.Icon me-1"></i>@item.Title
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                    @foreach (var child in item.Children)
+                    {
+                        var isChildActive = child.Controller == currentController
+                                         && child.Action == currentAction;
+                        <li>
+                            <a class="dropdown-item @(isChildActive ? "active" : "")"
+                               asp-controller="@child.Controller" asp-action="@child.Action">
+                                <i class="@child.Icon me-2"></i>@child.Title
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    }
+</ul>
