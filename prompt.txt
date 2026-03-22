@@ -1,0 +1,45 @@
+你好！請擔任「資深全端工程師與 ESG 顧問」，在 /home/developer/project 目錄下初始化並開發一套「ESG 永續數據與文件管理平台」。
+
+### 1. 系統開發規範 (必須寫入 CLAUDE.md)
+- 框架：.NET 8.0 MVC (Repository + Service Pattern)。
+- 資料庫：MS SQL Server (使用 Dapper 進行參數化查詢)。
+- 語言：UI 文字、程式碼註解、README 與日誌必須使用「繁體中文」。
+- 圖表：使用 Chart.js，嚴禁圓餅圖，請用「堆疊橫向條形圖」展現範疇佔比。
+
+### 2. 資料庫設計 (產生 InitialSchema.sql)
+請建立以下表結構並設定關聯：
+1. Users / Roles: 權限管理。
+2. NavItems: 二維導覽列結構表 (Id, Title, Controller, Action, Icon, ParentId, DisplayOrder, IsAdminOnly)。
+3. EmissionConfigs: 碳排係數 (含 Scope 1/2, Category, Factor, GWP, Unit)。
+4. Scope3Categories: 範疇三 15 項類別表 (Id, CategoryNumber, Name, Description)。
+5. Scope3CalculationMethods: 範疇三計算方法表 (Id, CategoryId, MethodName, RequiredFieldsJson)。*註：RequiredFieldsJson 用於定義前端應動態渲染哪些輸入欄位 (例如：金額、重量、供應商係數等)*。
+6. RawDataUploads / CalculationResults: 原始數據與計算結果紀錄。
+7. EsgDocumentSchedules: ESG 文件排程 (Id, 內容名稱, 頻率[月/年], 負責窗口, 預警天數, 下次截止日)。
+8. EsgDocumentUploads: 文件上傳紀錄與路徑。
+
+### 3. 核心功能開發重點
+
+A. 動態二維導覽列 (Dynamic Navigation)
+- 從資料庫 `NavItems` 讀取選單，支援父子兩層結構，並依據 Role 過濾。
+
+B. 溫室氣體數據與動態範疇三 (GHG Module)
+- **範疇三資料庫連動**：前端下拉選單必須從 `Scope3Categories` 讀取類別；選取類別後，連動讀取 `Scope3CalculationMethods` 獲取可用的計算方法（如：支出法、供應商特有法、平均資料法等）。
+- **動態欄位渲染**：前端必須解析 `RequiredFieldsJson`，動態生成對應的輸入表單（例如選「支出法」只顯示「金額」與「幣別」；選「活動數據法」顯示「重量」與「距離」）。
+- **Excel 批量上傳**：提供標準範本下載，並使用 MiniExcel 實作導入。管理員可透過介面維護範疇三的類別與方法。
+
+C. ESG 全文件監控看板 (紅綠燈邏輯)
+- 管理員可維護文件排程、頻率與窗口。
+- 紅綠燈顯示：
+    - 綠燈：期限內已上傳。
+    - 黃燈：未上傳且接近截止日 (月報剩 7 天、年報剩 90 天，或依預警天數)。
+    - 紅燈：已過截止日未上傳。
+- 自動化：文件上傳後，自動更新「最後上傳時間」並依頻率推算「下次截止日」。列表第一欄必須顯示紅綠燈。
+
+### 4. 任務執行步驟
+1. 初始化 .NET 8 MVC 專案。
+2. 撰寫 CLAUDE.md 明確上述規範。
+3. 產生 InitialSchema.sql (包含範疇三的預設種子資料 Seed Data) 並執行。
+4. 實作基礎 Layout.cshtml，包含從資料庫讀取的動態二維導覽列。
+5. 實作範疇三動態表單渲染邏輯與紅綠燈演算法。
+
+請直接開始執行建置專案基礎骨架與資料庫設計。
