@@ -17,6 +17,9 @@ public class EsgDocumentUpload
 
     public long FileSizeBytes { get; set; }
 
+    /// <summary>版本序號（同一排程每次上傳遞增）</summary>
+    public int VersionNumber { get; set; } = 1;
+
     public DateTime UploadedAt { get; set; } = DateTime.Now;
 
     public string? Remark { get; set; }

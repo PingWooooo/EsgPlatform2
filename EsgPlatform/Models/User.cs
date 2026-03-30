@@ -19,6 +19,9 @@ public class User
     /// <summary>角色 ID（關聯 Roles 資料表）</summary>
     public int RoleId { get; set; }
 
+    /// <summary>帳號啟用狀態（false = 停用）</summary>
+    public bool IsActive { get; set; } = true;
+
     /// <summary>建立時間</summary>
     public DateTime CreatedAt { get; set; }
 

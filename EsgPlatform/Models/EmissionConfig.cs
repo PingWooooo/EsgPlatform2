@@ -25,6 +25,9 @@ public class EmissionConfig
     /// <summary>係數單位（例：kg CO2e/kWh）</summary>
     public string Unit { get; set; } = string.Empty;
 
+    /// <summary>原始文獻來源網址（可點擊超連結）</summary>
+    public string? SourceUrl { get; set; }
+
     /// <summary>最後更新時間</summary>
     public DateTime UpdatedAt { get; set; }
 }

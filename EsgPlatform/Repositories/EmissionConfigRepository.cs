@@ -44,8 +44,10 @@ public class EmissionConfigRepository : IEmissionConfigRepository
     public async Task<int> InsertAsync(EmissionConfig config)
     {
         const string sql = @"
-            INSERT INTO EmissionConfigs (Scope, Category, ItemName, Factor, GWP, Unit, UpdatedAt)
-            VALUES (@Scope, @Category, @ItemName, @Factor, @GWP, @Unit, GETDATE());
+            INSERT INTO EmissionConfigs
+                (Scope, Category, ItemName, Factor, GWP, Unit, SourceUrl, UpdatedAt)
+            VALUES
+                (@Scope, @Category, @ItemName, @Factor, @GWP, @Unit, @SourceUrl, GETDATE());
             SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
         using var conn = new SqlConnection(_connectionString);
@@ -56,7 +58,11 @@ public class EmissionConfigRepository : IEmissionConfigRepository
     {
         const string sql = @"
             UPDATE EmissionConfigs
-            SET Factor = @Factor, GWP = @GWP, Unit = @Unit, UpdatedAt = GETDATE()
+            SET Factor    = @Factor,
+                GWP       = @GWP,
+                Unit      = @Unit,
+                SourceUrl = @SourceUrl,
+                UpdatedAt = GETDATE()
             WHERE Id = @Id";
 
         using var conn = new SqlConnection(_connectionString);

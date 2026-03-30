@@ -38,7 +38,8 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">原始檔名</th>
+                            <th class="ps-3" style="width:80px;">版本</th>
+                            <th>原始檔名</th>
                             <th>檔案大小</th>
                             <th>上傳者</th>
                             <th>上傳時間</th>
@@ -48,8 +49,18 @@
                     <tbody>
                         @foreach (var u in Model)
                         {
-                            <tr>
+                            var isLatest = u == Model.First();
+                            <tr @(isLatest ? "class=\"table-success bg-opacity-25\"" : "")>
                                 <td class="ps-3">
+                                    <span class="badge @(isLatest ? "bg-success" : "bg-secondary")">
+                                        v@u.VersionNumber
+                                    </span>
+                                    @if (isLatest)
+                                    {
+                                        <span class="badge bg-success ms-1 fw-normal">最新</span>
+                                    }
+                                </td>
+                                <td>
                                     <i class="bi bi-file-earmark me-1 text-muted"></i>
                                     @u.OriginalFileName
                                 </td>

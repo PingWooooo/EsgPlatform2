@@ -1,7 +1,7 @@
 -- ============================================================
 -- ESG 企業永續數據與文件管理平台 - 資料庫初始化腳本
 -- 資料庫：Microsoft SQL Server
--- 版本：2.0.0
+-- 版本：3.0.0
 -- 說明：請依序執行本腳本，所有資料表將依照外鍵關聯順序建立
 -- ============================================================
 
@@ -45,6 +45,7 @@ CREATE TABLE Users (
     PasswordHash    NVARCHAR(256)   NOT NULL,   -- BCrypt 雜湊
     Email           NVARCHAR(200)   NOT NULL UNIQUE,
     RoleId          INT             NOT NULL,
+    IsActive        BIT             NOT NULL DEFAULT 1,  -- 帳號啟用狀態
     CreatedAt       DATETIME2       NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES Roles(Id)
 );
@@ -96,8 +97,9 @@ INSERT INTO NavItems (Id, Title, Controller, Action, Icon, ParentId, DisplayOrde
 
 -- 二級選單：系統管理（ParentId = 4）
 INSERT INTO NavItems (Id, Title, Controller, Action, Icon, ParentId, DisplayOrder, IsAdminOnly) VALUES
-(10, N'報告排程',    N'ReportSchedule', N'Index', N'bi bi-calendar-check',  4, 1, 1),
-(11, N'碳排係數維護', N'EmissionConfig', N'Index', N'bi bi-database-gear',   4, 2, 1);
+(10, N'報告排程',    N'ReportSchedule',  N'Index', N'bi bi-calendar-check',  4, 1, 1),
+(11, N'碳排係數維護', N'EmissionConfig',  N'Index', N'bi bi-database-gear',   4, 2, 1),
+(12, N'權限管理',    N'UserManagement',  N'Index', N'bi bi-people-fill',      4, 3, 1);
 
 SET IDENTITY_INSERT NavItems OFF;
 GO
@@ -113,6 +115,7 @@ CREATE TABLE EmissionConfigs (
     Factor      DECIMAL(18,6)   NOT NULL,           -- 排放係數
     GWP         DECIMAL(10,4)   NOT NULL DEFAULT 1, -- 全球暖化潛勢
     Unit        NVARCHAR(50)    NOT NULL,           -- 例：kg CO2e/kWh
+    SourceUrl   NVARCHAR(500)   NULL,               -- 原始文獻來源網址
     UpdatedAt   DATETIME2       NOT NULL DEFAULT GETDATE(),
     CONSTRAINT UQ_EmissionConfigs UNIQUE (Scope, Category, ItemName)
 );
@@ -231,6 +234,7 @@ CREATE TABLE EsgDocumentUploads (
     OriginalFileName NVARCHAR(500)   NOT NULL,           -- 原始檔名（供顯示）
     StoredFilePath   NVARCHAR(1000)  NOT NULL,           -- 儲存路徑（GUID 重命名）
     FileSizeBytes    BIGINT          NOT NULL,
+    VersionNumber    INT             NOT NULL DEFAULT 1,  -- 版本序號（同排程遞增）
     UploadedAt       DATETIME2       NOT NULL DEFAULT GETDATE(),
     Remark           NVARCHAR(500)   NULL,
     CONSTRAINT FK_EsgDocUploads_Schedule FOREIGN KEY (ScheduleId) REFERENCES EsgDocumentSchedules(Id),
@@ -243,7 +247,30 @@ CREATE INDEX IX_EsgDocUploads_UploadedAt ON EsgDocumentUploads(UploadedAt);
 GO
 
 -- ============================================================
--- 12. RegulationUpdateLogs 法規係數更新紀錄
+-- 12. EmissionFactorLogs 係數異動紀錄（管理員手動修改追蹤）
+-- ============================================================
+CREATE TABLE EmissionFactorLogs (
+    Id              INT             NOT NULL IDENTITY(1,1) PRIMARY KEY,
+    ConfigId        INT             NOT NULL,
+    OldFactor       DECIMAL(18,6)   NOT NULL,       -- 修改前係數
+    NewFactor       DECIMAL(18,6)   NOT NULL,       -- 修改後係數
+    OldSourceUrl    NVARCHAR(500)   NULL,           -- 修改前來源網址
+    NewSourceUrl    NVARCHAR(500)   NULL,           -- 修改後來源網址
+    ChangeReason    NVARCHAR(500)   NULL,           -- 變更原因說明
+    OperatorUserId  INT             NOT NULL,       -- 操作者使用者 ID
+    OperatorName    NVARCHAR(100)   NOT NULL,       -- 操作者帳號（快照）
+    ChangedAt       DATETIME2       NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_EmissionFactorLogs_Config FOREIGN KEY (ConfigId) REFERENCES EmissionConfigs(Id),
+    CONSTRAINT FK_EmissionFactorLogs_User   FOREIGN KEY (OperatorUserId) REFERENCES Users(Id)
+);
+GO
+
+CREATE INDEX IX_EmissionFactorLogs_ConfigId  ON EmissionFactorLogs(ConfigId);
+CREATE INDEX IX_EmissionFactorLogs_ChangedAt ON EmissionFactorLogs(ChangedAt DESC);
+GO
+
+-- ============================================================
+-- 13. RegulationUpdateLogs 法規係數更新紀錄
 -- ============================================================
 CREATE TABLE RegulationUpdateLogs (
     Id              INT             NOT NULL IDENTITY(1,1) PRIMARY KEY,
@@ -260,7 +287,7 @@ CREATE INDEX IX_RegulationUpdateLogs_ConfigId ON RegulationUpdateLogs(ConfigId);
 GO
 
 -- ============================================================
--- 13. ReportSchedules 報告排程資料表（原有，保留相容）
+-- 14. ReportSchedules 報告排程資料表（原有，保留相容）
 -- ============================================================
 CREATE TABLE ReportSchedules (
     Id                  INT             NOT NULL IDENTITY(1,1) PRIMARY KEY,
@@ -274,7 +301,7 @@ CREATE TABLE ReportSchedules (
 GO
 
 -- ============================================================
--- 14. ReportStatusLogs 報告進度燈號資料表
+-- 15. ReportStatusLogs 報告進度燈號資料表
 -- ============================================================
 CREATE TABLE ReportStatusLogs (
     Id              INT             NOT NULL IDENTITY(1,1) PRIMARY KEY,
@@ -303,20 +330,26 @@ VALUES (N'user01', N'$2a$11$YN3hW0rMV3Tv5fgDkbLnkecRJh5a0D2BqfEqJ7NqTFHM1WQ/mMxL
 GO
 
 -- 範疇一 碳排係數
-INSERT INTO EmissionConfigs (Scope, Category, ItemName, Factor, GWP, Unit) VALUES
-(1, N'固定燃燒源', N'天然氣',       2.0416,  1.0, N'kg CO2e/m³'),
-(1, N'固定燃燒源', N'柴油',         2.6360,  1.0, N'kg CO2e/L'),
-(1, N'固定燃燒源', N'液化石油氣',   2.9920,  1.0, N'kg CO2e/L'),
-(1, N'移動燃燒源', N'汽油',         2.2637,  1.0, N'kg CO2e/L'),
-(1, N'移動燃燒源', N'柴油(車用)',   2.6280,  1.0, N'kg CO2e/L'),
-(1, N'逸散排放',   N'冷媒R-22',     1810.0,  1.0, N'kg CO2e/kg'),
-(1, N'逸散排放',   N'冷媒R-134a',   1430.0,  1.0, N'kg CO2e/kg');
+INSERT INTO EmissionConfigs (Scope, Category, ItemName, Factor, GWP, Unit, SourceUrl) VALUES
+(1, N'固定燃燒源', N'天然氣',             2.0416,  1.0, N'kg CO2e/m³',  NULL),
+(1, N'固定燃燒源', N'柴油',               2.6360,  1.0, N'kg CO2e/L',   NULL),
+(1, N'固定燃燒源', N'液化石油氣',         2.9920,  1.0, N'kg CO2e/L',   NULL),
+(1, N'移動燃燒源', N'汽油',               2.2637,  1.0, N'kg CO2e/L',   NULL),
+(1, N'移動燃燒源', N'柴油(車用)',         2.6280,  1.0, N'kg CO2e/L',   NULL),
+(1, N'逸散排放',   N'冷媒R-22',           1810.0,  1.0, N'kg CO2e/kg',  NULL),
+(1, N'逸散排放',   N'冷媒R-134a',         1430.0,  1.0, N'kg CO2e/kg',  NULL),
+-- 指定規格補充：自來水、天然氣（環境部）、汽油（環境部）、柴油（環境部）
+(1, N'用水排放',   N'自來水',             0.1600,  1.0, N'kg CO2e/m³',  N'https://www.water.gov.tw/'),
+(1, N'固定燃燒源', N'天然氣（環境部公告）', 2.0900, 1.0, N'kg CO2e/m³', N'https://www.moenv.gov.tw/'),
+(1, N'移動燃燒源', N'汽油（環境部公告）',  2.3600, 1.0, N'kg CO2e/L',  N'https://www.moenv.gov.tw/'),
+(1, N'移動燃燒源', N'柴油（環境部公告）',  2.6600, 1.0, N'kg CO2e/L',  N'https://www.moenv.gov.tw/');
 GO
 
 -- 範疇二 碳排係數（台灣電力排放係數）
-INSERT INTO EmissionConfigs (Scope, Category, ItemName, Factor, GWP, Unit) VALUES
-(2, N'外購電力', N'台電電力', 0.4950, 1.0, N'kg CO2e/kWh'),
-(2, N'外購蒸汽', N'工業蒸汽', 0.0950, 1.0, N'kg CO2e/MJ');
+INSERT INTO EmissionConfigs (Scope, Category, ItemName, Factor, GWP, Unit, SourceUrl) VALUES
+(2, N'外購電力', N'台電電力',       0.4950, 1.0, N'kg CO2e/kWh', NULL),
+(2, N'外購電力', N'台電電力（最新公告）', 0.4950, 1.0, N'kg CO2e/kWh', N'https://www.esb.gov.tw/'),
+(2, N'外購蒸汽', N'工業蒸汽',       0.0950, 1.0, N'kg CO2e/MJ',  NULL);
 GO
 
 -- 範疇三 15 項類別種子資料
@@ -486,11 +519,13 @@ INSERT INTO ReportSchedules (ReportName, Frequency, ResponsiblePerson, WarningDa
 (N'供應鏈碳排放月報',     N'Monthly', N'採購部-陳小玲',         7,  DATEADD(MONTH, 1, CAST(GETDATE() AS DATE)));
 GO
 
-PRINT N'ESG 平台資料庫 v2.0.0 初始化完成！';
+PRINT N'ESG 平台資料庫 v3.0.0 初始化完成！';
 PRINT N'預設管理員：admin / Admin@123';
 PRINT N'預設一般使用者：user01 / User@123';
 PRINT N'新增資料表：NavItems, Scope3Categories, Scope3CalculationMethods, Scope3CalculationResults';
-PRINT N'新增資料表：EsgDocumentSchedules, EsgDocumentUploads';
+PRINT N'新增資料表：EsgDocumentSchedules, EsgDocumentUploads, EmissionFactorLogs';
+PRINT N'新增欄位：EmissionConfigs.SourceUrl, EsgDocumentUploads.VersionNumber, Users.IsActive';
 PRINT N'範疇三類別：15 筆，計算方法：20+ 筆';
 PRINT N'ESG 文件排程：5 筆示範資料';
+PRINT N'NavItems：新增 Id=12 權限管理';
 GO

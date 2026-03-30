@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EsgPlatform")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+842ba532b6926f63bd53e808e2fb8c998ce7ea92")]
 [assembly: System.Reflection.AssemblyProductAttribute("EsgPlatform")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EsgPlatform")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

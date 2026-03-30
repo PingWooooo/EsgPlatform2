@@ -51,6 +51,17 @@ builder.Services.AddScoped<RegulationTrackingService>();
 builder.Services.AddScoped<IScope3Service, Scope3Service>();
 builder.Services.AddScoped<IEsgDocumentService, EsgDocumentService>();
 
+// 新增 Repository：係數異動紀錄
+builder.Services.AddScoped<IEmissionFactorLogRepository, EmissionFactorLogRepository>();
+
+// 新增 Service：碳排係數維護、帳號管理、GPT AI 建議
+builder.Services.AddScoped<IEmissionConfigService, EmissionConfigService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IGptService, GptService>();
+
+// HttpClient（供 GptService 呼叫 OpenAI API 使用）
+builder.Services.AddHttpClient("GptClient");
+
 // 上傳檔案大小限制（50 MB，ESG 文件可能較大）
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {

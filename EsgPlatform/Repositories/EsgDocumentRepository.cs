@@ -98,11 +98,19 @@ public class EsgDocumentRepository : IEsgDocumentRepository
 
     public async Task<int> InsertUploadAsync(EsgDocumentUpload upload)
     {
+        // 自動計算版本號：取同排程最大版本號 + 1
         const string sql = @"
+            DECLARE @NextVersion INT;
+            SELECT @NextVersion = ISNULL(MAX(VersionNumber), 0) + 1
+            FROM EsgDocumentUploads
+            WHERE ScheduleId = @ScheduleId;
+
             INSERT INTO EsgDocumentUploads
-                (ScheduleId, UserId, OriginalFileName, StoredFilePath, FileSizeBytes, UploadedAt, Remark)
+                (ScheduleId, UserId, OriginalFileName, StoredFilePath,
+                 FileSizeBytes, VersionNumber, UploadedAt, Remark)
             VALUES
-                (@ScheduleId, @UserId, @OriginalFileName, @StoredFilePath, @FileSizeBytes, GETDATE(), @Remark);
+                (@ScheduleId, @UserId, @OriginalFileName, @StoredFilePath,
+                 @FileSizeBytes, @NextVersion, GETDATE(), @Remark);
             SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
         using var conn = new SqlConnection(_connectionString);
@@ -113,7 +121,7 @@ public class EsgDocumentRepository : IEsgDocumentRepository
     {
         const string sql = @"
             SELECT u.Id, u.ScheduleId, u.UserId, u.OriginalFileName, u.StoredFilePath,
-                   u.FileSizeBytes, u.UploadedAt, u.Remark,
+                   u.FileSizeBytes, u.VersionNumber, u.UploadedAt, u.Remark,
                    s.DocumentName, usr.Username
             FROM EsgDocumentUploads u
             INNER JOIN EsgDocumentSchedules s ON u.ScheduleId = s.Id

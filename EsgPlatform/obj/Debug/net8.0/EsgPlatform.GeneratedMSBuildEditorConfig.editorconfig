@@ -32,6 +32,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[G:/claude-home-lab/my-esg-project/EsgPlatform/Views/EmissionConfig/Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1pc3Npb25Db25maWdcRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[G:/claude-home-lab/my-esg-project/EsgPlatform/Views/EmissionConfig/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1pc3Npb25Db25maWdcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[G:/claude-home-lab/my-esg-project/EsgPlatform/Views/EmissionConfig/Logs.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW1pc3Npb25Db25maWdcTG9ncy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [G:/claude-home-lab/my-esg-project/EsgPlatform/Views/EsgDocument/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRXNnRG9jdW1lbnRcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -98,6 +110,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [G:/claude-home-lab/my-esg-project/EsgPlatform/Views/Upload/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXBsb2FkXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[G:/claude-home-lab/my-esg-project/EsgPlatform/Views/UserManagement/Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlck1hbmFnZW1lbnRcRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[G:/claude-home-lab/my-esg-project/EsgPlatform/Views/UserManagement/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlck1hbmFnZW1lbnRcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[G:/claude-home-lab/my-esg-project/EsgPlatform/Views/UserManagement/ResetPassword.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlck1hbmFnZW1lbnRcUmVzZXRQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [G:/claude-home-lab/my-esg-project/EsgPlatform/Views/_ViewImports.cshtml]

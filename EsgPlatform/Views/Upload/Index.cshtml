@@ -96,12 +96,15 @@
             </div>
         </div>
 
-        <!-- Excel 格式說明 -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 pt-3">
+        <!-- Excel 格式說明 & 範本下載 -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
                 <h6 class="card-title mb-0 fw-semibold">
                     <i class="bi bi-info-circle me-2 text-info"></i>Excel 格式規範
                 </h6>
+                <a asp-action="DownloadTemplate" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-file-earmark-arrow-down me-1"></i>下載 Excel 範本
+                </a>
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">第一列為標題列，欄位名稱請依照下表設定：</p>
@@ -127,6 +130,41 @@
                 <div class="alert alert-info py-2 small mb-0">
                     <i class="bi bi-lightbulb me-1"></i>
                     <strong>提示：</strong>Category 與 ItemName 的值必須與「碳排係數設定」中的項目一致，系統才能自動比對並計算 CO₂e。
+                </div>
+            </div>
+        </div>
+
+        <!-- AI 減碳建議區塊 -->
+        <div class="card border-0 shadow-sm" id="aiAdviceCard">
+            <div class="card-header bg-white border-0 pt-3 d-flex align-items-center">
+                <i class="bi bi-robot fs-5 me-2 text-primary"></i>
+                <h6 class="card-title mb-0 fw-semibold">AI 減碳建議</h6>
+                <span class="badge bg-primary ms-2 fw-normal">GPT</span>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    輸入您的碳排放數據摘要，AI 將分析後提供具體可行的減碳策略建議。
+                </p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">碳排放數據摘要</label>
+                    <textarea id="emissionSummary" class="form-control" rows="3"
+                              placeholder="例：2024年度本公司範疇一排放 120 公噸 CO2e（天然氣佔 60%、柴油 40%），範疇二電力排放 85 公噸 CO2e。..."></textarea>
+                </div>
+                <button type="button" class="btn btn-primary" id="getAdviceBtn">
+                    <i class="bi bi-magic me-1"></i>取得 AI 減碳建議
+                </button>
+                <div id="aiAdviceResult" class="mt-3 d-none">
+                    <hr />
+                    <h6 class="fw-semibold text-primary mb-2">
+                        <i class="bi bi-lightbulb-fill me-1"></i>AI 建議結果
+                    </h6>
+                    <div id="aiAdviceText" class="bg-light rounded p-3 small" style="white-space:pre-wrap;"></div>
+                </div>
+                <div id="aiAdviceSpinner" class="mt-3 d-none text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">載入中...</span>
+                    </div>
+                    <p class="small text-muted mt-2">AI 正在分析您的碳排放數據...</p>
                 </div>
             </div>
         </div>
@@ -178,6 +216,46 @@
     document.getElementById('uploadForm').addEventListener('submit', function() {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>處理中...';
+    });
+
+    // AI 減碳建議
+    document.getElementById('getAdviceBtn').addEventListener('click', async function () {
+        const summary = document.getElementById('emissionSummary').value.trim();
+        if (!summary) {
+            alert('請先輸入碳排放數據摘要');
+            return;
+        }
+
+        const btn     = this;
+        const spinner = document.getElementById('aiAdviceSpinner');
+        const result  = document.getElementById('aiAdviceResult');
+        const text    = document.getElementById('aiAdviceText');
+
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        result.classList.add('d-none');
+
+        try {
+            // 取得 AntiForgery token（由 hidden form field 提供）
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch('/Upload/GetAiAdvice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ summary })
+            });
+            const data = await response.json();
+            text.textContent = data.advice;
+            result.classList.remove('d-none');
+        } catch (err) {
+            text.textContent = '呼叫 AI 服務失敗，請稍後再試。';
+            result.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+        }
     });
 </script>
 }
